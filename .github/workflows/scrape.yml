@@ -36,15 +36,12 @@ jobs:
         echo "C:\Program Files\Google\Chrome\Application" | Out-File -Append $env:GITHUB_PATH
       shell: powershell
    
-    - name: Install ODBC Driver 18 via Microsoft Installer
+    - name: Install ODBC Driver 17 via Microsoft Installer
       run: |
         Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=2211530" -OutFile "msodbcsql18.msi"
         Start-Process msiexec.exe -Wait -ArgumentList '/I msodbcsql18.msi /quiet /norestart IACCEPTMSODBCSQLLICENSETERMS=YES'
         Remove-Item msodbcsql18.msi
       shell: powershell
-    - name: List installed ODBC drivers (debug)
-      run: |
-         python -c "import pyodbc; print('ODBC Drivers:', pyodbc.drivers())"
 
    
     - name: Run newsCrawler.py
