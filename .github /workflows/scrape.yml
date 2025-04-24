@@ -1,4 +1,4 @@
-name: Hourly Market News Scraper (Windows + Chrome)
+name: Market News Scraper (Windows + Chrome)
 
 on:
   schedule:
@@ -34,13 +34,11 @@ jobs:
       shell: powershell
 
     - name: Run newsCrawler.py
-
       env:
-        OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY}}
-        DB_SERVER=${{ secrets.DB_SERVER }}
-        DB_NAME=${{ secrets.DB_NAME }}
-        DB_USERNAME=${{ secrets.DB_USERNAME}}
-        DB_PASSWORD=${{ secrets.DB_PASSWORD}}
-        
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        DB_SERVER: ${{ secrets.DB_SERVER }}
+        DB_NAME: ${{ secrets.DB_NAME }}
+        DB_USERNAME: ${{ secrets.DB_USERNAME }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       run: |
         python newsCrawler.py
