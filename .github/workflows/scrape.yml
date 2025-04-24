@@ -1,0 +1,44 @@
+name: Market News Scraper (Windows + Chrome)
+
+on:
+  schedule:
+    - cron: "0 * * * *"  # Every hour on the hour (UTC)
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Install Chrome and ChromeDriver (Windows)
+      run: |
+        choco install googlechrome chromedriver --ignore-checksums --yes
+      shell: powershell
+
+    - name: Set Chrome path (if needed)
+      run: |
+        echo "C:\Program Files\Google\Chrome\Application" | Out-File -Append $env:GITHUB_PATH
+      shell: powershell
+
+    - name: Run newsCrawler.py
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        DB_SERVER: ${{ secrets.DB_SERVER }}
+        DB_NAME: ${{ secrets.DB_NAME }}
+        DB_USERNAME: ${{ secrets.DB_USERNAME }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      run: |
+        python newsCrawler.py
