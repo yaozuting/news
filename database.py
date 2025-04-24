@@ -3,13 +3,20 @@ import pyodbc
 import pandas as pd
 from dotenv import load_dotenv
 
-
-# Load environment variables from .env
+# Load environment variables from .env file
 load_dotenv()
+
+# Validate required env vars
+def validate_env():
+    required_vars = ['DB_SERVER', 'DB_NAME', 'DB_USERNAME', 'DB_PASSWORD']
+    missing = [var for var in required_vars if not os.getenv(var)]
+    if missing:
+        raise EnvironmentError(f"Missing environment variables: {', '.join(missing)}")
 
 # Connect to Azure SQL using pyodbc
 def connect_to_azure_sql():
     try:
+        validate_env()
         connection = pyodbc.connect(
             f"DRIVER={{ODBC Driver 18 for SQL Server}};"
             f"SERVER={os.getenv('DB_SERVER')};"
@@ -20,12 +27,11 @@ def connect_to_azure_sql():
             f"TrustServerCertificate=no;"
             f"Connection Timeout=100;"
         )
-        print("✅ Successfully connected to Azure SQL Database.")
+        print("[INFO] Successfully connected to Azure SQL Database.")
         return connection
     except Exception as e:
-        print(f"❌ Error connecting to Azure SQL Database: {e}")
+        print(f"[ERROR] Error connecting to Azure SQL Database: {e}")
         return None
-
 
 # Read entire table into DataFrame
 def read_sql(table_name):
@@ -36,21 +42,20 @@ def read_sql(table_name):
             df = pd.read_sql(query, conn)
             conn.close()
             return df
-    
         else:
             return pd.DataFrame()
     except Exception as e:
-        print(f"❌ Error reading SQL data: {e}")
+        print(f"[ERROR] Error reading SQL data: {e}")
         return pd.DataFrame()
 
-
+# Insert DataFrame to SQL table
 def insert_news(news_df, news_table):
     try:
         conn = connect_to_azure_sql()
         if not conn:
-            print("❌ DB connection failed for batch.")
+            print("[ERROR] DB connection failed for batch insert.")
             return
-   
+
         cursor = conn.cursor()
         insert_query = f"""
             INSERT INTO {news_table}
@@ -75,14 +80,9 @@ def insert_news(news_df, news_table):
         conn.commit()
         cursor.close()
         conn.close()
-        print(f"✅ Inserted batch of {len(records)} rows.")
-
+        print(f"[INFO] Inserted batch of {len(records)} rows.")
     except Exception as e:
-        print(f"❌ Error inserting batch: {e}")
-
-
-
-
+        print(f"[ERROR] Error inserting batch: {e}")
 
 # Get the most recent row by Published_Date
 def extract_last_news(news_table):
@@ -96,12 +96,15 @@ def extract_last_news(news_table):
         else:
             return pd.DataFrame()
     except Exception as e:
-        print(f"❌ Error extracting last news: {e}")
+        print(f"[ERROR] Error extracting last news: {e}")
         return pd.DataFrame()
 
-
-# Test connection
+# Manual test connection
 if __name__ == "__main__":
-    conn = connect_to_azure_sql()
-    if conn:
-        conn.close()
+    try:
+        conn = connect_to_azure_sql()
+        if conn:
+            print("[INFO] Test connection successful.")
+            conn.close()
+    except Exception as e:
+        print(f"[ERROR] Test connection failed: {e}")
