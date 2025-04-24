@@ -35,7 +35,12 @@ jobs:
       run: |
         echo "C:\Program Files\Google\Chrome\Application" | Out-File -Append $env:GITHUB_PATH
       shell: powershell
-
+   
+    - name: Install ODBC Driver for SQL Server (Windows)
+      run: |
+        choco install microsoft-odbc-driver-18 -y
+      shell: powershell
+   
     - name: Run newsCrawler.py
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
