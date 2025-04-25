@@ -22,7 +22,7 @@ load_dotenv('.env')
 # Set up OpenAI API client
 api = os.getenv("OPENAI_API_KEY")
 
-client = OpenAI(api_key='sk-d5d058d1fd3143bab9caf3ba19e37f14',base_url="https://api.deepseek.com")
+client = OpenAI(api_key=api,base_url="https://api.deepseek.com")
 def assign_industry(client,news_title):
     """Assigns industry to the news title using DeepSeek API."""
     try:
