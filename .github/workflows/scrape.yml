@@ -2,7 +2,7 @@ name: Market News Scraper (Windows + Chrome)
 
 on:
   schedule:
-    - cron: "0 * * * *"  # Every hour on the hour (UTC)
+    - cron: "*/30 * * * *"
   workflow_dispatch:
 
 jobs:
