@@ -1,4 +1,5 @@
 import os
+import time
 import pyodbc
 import pandas as pd
 from dotenv import load_dotenv
@@ -13,25 +14,33 @@ def validate_env():
     if missing:
         raise EnvironmentError(f"Missing environment variables: {', '.join(missing)}")
 
-# Connect to Azure SQL using pyodbc
-def connect_to_azure_sql():
-    try:
-        validate_env()
-        connection = pyodbc.connect(
-            f"DRIVER={{ODBC Driver 17 for SQL Server}};"
-            f"SERVER={os.getenv('DB_SERVER')};"
-            f"DATABASE={os.getenv('DB_NAME')};"
-            f"UID={os.getenv('DB_USERNAME')};"
-            f"PWD={os.getenv('DB_PASSWORD')};"
-            f"Encrypt=yes;"
-            f"TrustServerCertificate=no;"
-            f"Connection Timeout=100;"
-        )
-        print("[INFO] Successfully connected to Azure SQL Database.")
-        return connection
-    except Exception as e:
-        print(f"[ERROR] Error connecting to Azure SQL Database: {e}")
-        return None
+# Connect to Azure SQL with retry logic
+def connect_to_azure_sql(max_retries=5, delay_seconds=10):
+    validate_env()
+    attempt = 0
+    while attempt < max_retries:
+        try:
+            connection = pyodbc.connect(
+                f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+                f"SERVER={os.getenv('DB_SERVER')};"
+                f"DATABASE={os.getenv('DB_NAME')};"
+                f"UID={os.getenv('DB_USERNAME')};"
+                f"PWD={os.getenv('DB_PASSWORD')};"
+                f"Encrypt=yes;"
+                f"TrustServerCertificate=no;"
+                f"Connection Timeout=60;"  # 60s enough for serverless wake
+            )
+            print(f"[INFO] Successfully connected to Azure SQL Database on attempt {attempt + 1}.")
+            return connection
+        except Exception as e:
+            print(f"[WARNING] Attempt {attempt + 1} failed: {e}")
+            attempt += 1
+            if attempt < max_retries:
+                print(f"[INFO] Retrying in {delay_seconds} seconds...")
+                time.sleep(delay_seconds)
+            else:
+                print("[ERROR] All connection attempts failed.")
+                return None
 
 # Read entire table into DataFrame
 def read_sql(table_name):
@@ -48,7 +57,7 @@ def read_sql(table_name):
         print(f"[ERROR] Error reading SQL data: {e}")
         return pd.DataFrame()
 
-# Insert DataFrame to SQL table
+# Insert DataFrame into SQL table
 def insert_news(news_df, news_table):
     try:
         conn = connect_to_azure_sql()
@@ -84,7 +93,7 @@ def insert_news(news_df, news_table):
     except Exception as e:
         print(f"[ERROR] Error inserting batch: {e}")
 
-# Get the most recent row by Published_Date
+# Get the most recent news
 def extract_last_news(news_table):
     try:
         conn = connect_to_azure_sql()
@@ -108,3 +117,4 @@ if __name__ == "__main__":
             conn.close()
     except Exception as e:
         print(f"[ERROR] Test connection failed: {e}")
+
