@@ -8,11 +8,17 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def clean_news_dataframe(news_df):
-    """Ensure all fields are either string or None (no NaN, no float)"""
+    """Clean the news DataFrame: ensure all fields are string or None, and drop duplicate Titles."""
+    # Clean fields
     for col in ['Title', 'News_Hyperlinks', 'Published_Date', 'Sector', 'Extracted_Entities', 'Related_Stock', 'Img']:
         if col in news_df.columns:
             news_df[col] = news_df[col].apply(lambda x: str(x).strip() if pd.notna(x) else None)
+    
+    # Drop duplicates based on Title (keeping the first occurrence)
+    news_df = news_df.drop_duplicates(subset='Title', keep='first').reset_index(drop=True)
+
     return news_df
+
 
 
 # Validate required env vars
