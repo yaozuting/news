@@ -164,7 +164,7 @@ def unstructured_news():
                 article_date = article_date.replace(tzinfo=pytz.timezone('Asia/Kuala_Lumpur'))  # Ensure timezone-aware
               
                 # Stop if this article is too old
-                if abs(target_date - article_date) > timedelta(hours=3):
+                if abs(target_date - article_date) > timedelta(hours=1):
                     return False
 
                 news_hyperlink = 'https://www.klsescreener.com' + article.find('a')['href']
