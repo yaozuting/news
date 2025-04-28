@@ -7,6 +7,14 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
+def clean_news_dataframe(news_df):
+    """Ensure all fields are either string or None (no NaN, no float)"""
+    for col in ['Title', 'News_Hyperlinks', 'Published_Date', 'Sector', 'Extracted_Entities', 'Related_Stock', 'Img']:
+        if col in news_df.columns:
+            news_df[col] = news_df[col].apply(lambda x: str(x).strip() if pd.notna(x) else None)
+    return news_df
+
+
 # Validate required env vars
 def validate_env():
     required_vars = ['DB_SERVER', 'DB_NAME', 'DB_USERNAME', 'DB_PASSWORD']
@@ -65,6 +73,9 @@ def insert_news(news_df, news_table):
             print("[ERROR] DB connection failed for batch insert.")
             return
 
+        # 💥 CLEAN data before inserting
+        news_df = clean_news_dataframe(news_df)
+
         cursor = conn.cursor()
         insert_query = f"""
             INSERT INTO {news_table}
@@ -92,6 +103,7 @@ def insert_news(news_df, news_table):
         print(f"[INFO] Inserted batch of {len(records)} rows.")
     except Exception as e:
         print(f"[ERROR] Error inserting batch: {e}")
+
 
 # Get the most recent news
 def extract_last_news(news_table):
