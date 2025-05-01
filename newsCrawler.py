@@ -35,8 +35,8 @@ def assign_industry(client,news_title):
 
         Construction, Consumer Products & Services(such as Automotive,F&B,Retailers,so forth), Energy, Financial Services, Health Care, Industrial Products & Services(such as Auto Parts,Building Materials,Chemicals,Metal,Wood and so on), Plantation, Property, REIT, Technology, Telecommunications & Media, Transportation & Logistics, Utilities,Unknown
 
-        Respond with only a single word in quotes — such as Construction, Financial Services, or Unknown . no quotation marks
-        the main idea is to categorize the  BUSINESS-RELATED news!!! OTHERS CLASSIFIED AS UNKNOWN IF THEY HAVE NO IMPACT ON ANY INDUSTRY
+        Based on the industry of character within the news n the impact of news has on any particular industry.Respond with only a single word in quotes — such as Construction, Financial Services, or Unknown . no quotation marks.
+       
 
         Title: {news_title}"""
             }
