@@ -22,7 +22,7 @@ load_dotenv('.env')
 # Set up OpenAI API client
 api = os.getenv("OPENAI_API_KEY")
 
-client = OpenAI(api_key=api,base_url="https://api.deepseek.com")
+client = OpenAI(api_key=api ,base_url="https://api.deepseek.com")
 def assign_industry(client,news_title):
     """Assigns industry to the news title using DeepSeek API."""
     try:
@@ -35,8 +35,8 @@ def assign_industry(client,news_title):
 
         Construction, Consumer Products & Services(such as Automotive,F&B,Retailers,so forth), Energy, Financial Services, Health Care, Industrial Products & Services(such as Auto Parts,Building Materials,Chemicals,Metal,Wood and so on), Plantation, Property, REIT, Technology, Telecommunications & Media, Transportation & Logistics, Utilities,Unknown
 
-        Based on the industry of character within the news n the impact of news has on any particular industry.Respond with only a single word in quotes — such as Construction, Financial Services, or Unknown . no quotation marks.
-       
+        Respond with only a single word in quotes — such as Construction, Financial Services, or Unknown . no quotation marks
+        the main idea is to categorize the  BUSINESS-RELATED news!!! OTHERS CLASSIFIED AS UNKNOWN IF THEY HAVE NO IMPACT ON ANY INDUSTRY
 
         Title: {news_title}"""
             }
@@ -157,6 +157,7 @@ def unstructured_news():
                 title = article.find('h2').get_text(strip=True)
                 if latest_data is not None and not latest_data.empty:
                     if latest_data['Title'].str.contains(title).any():
+                         break
                          return False  # Stop if we reached previously scraped title
 
                 date_str = article.find('span', attrs={"data-date": True})['data-date']
@@ -165,6 +166,7 @@ def unstructured_news():
               
                 # Stop if this article is too old
                 if abs(target_date - article_date) > timedelta(hours=1):
+                    break
                     return False
 
                 news_hyperlink = 'https://www.klsescreener.com' + article.find('a')['href']
@@ -234,7 +236,7 @@ class NewsMainStorySpider(scrapy.Spider):
         news_container = soup.find('div', class_='news-container')
         paragraphs = news_container.find_all('p')
         related_stocks_section = soup.find('div', class_='stock-list table-responsive')
-        # full_text = ' '.join([p.get_text(strip=True) for p in paragraphs])
+        full_text = ' '.join([p.get_text(strip=True) for p in paragraphs])
         img = news_container.find('img')
         if img:
             img_url = img['src']
@@ -253,7 +255,7 @@ class NewsMainStorySpider(scrapy.Spider):
 
         for item in self.market_news:
             if item['News_Hyperlinks'] == response.url:
-                # item['Body'] = full_text
+                item['Body'] = full_text
                 item['Related_Stock'] = ', '.join(related_stocks)
                 item['Img'] = img_url
                 break  # No need to continue once matched
