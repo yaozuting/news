@@ -10,7 +10,7 @@ load_dotenv()
 def clean_news_dataframe(news_df):
     """Clean the news DataFrame: ensure all fields are string or None, and drop duplicate Titles."""
     # Clean fields
-    for col in ['Title', 'News_Hyperlinks', 'Published_Date', 'Sector', 'Extracted_Entities', 'Related_Stock', 'Img']:
+    for col in ['Title', 'News_Hyperlinks', 'Published_Date', 'Sector', 'Extracted_Entities', 'Related_Stock', 'Img','Body']:
         if col in news_df.columns:
             news_df[col] = news_df[col].apply(lambda x: str(x).strip() if pd.notna(x) else None)
     
@@ -85,8 +85,8 @@ def insert_news(news_df, news_table):
         cursor = conn.cursor()
         insert_query = f"""
             INSERT INTO {news_table}
-            (Title, News_Hyperlinks, Published_Date, Sector, Extracted_Entities, Related_Stock, Img)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            (Title, News_Hyperlinks, Published_Date, Sector, Extracted_Entities, Related_Stock, Img,Body)
+            VALUES (?, ?, ?, ?, ?, ?, ?,?)
         """
 
         records = [
@@ -97,7 +97,8 @@ def insert_news(news_df, news_table):
                 row['Sector'],
                 row['Extracted_Entities'],
                 row['Related_Stock'],
-                row['Img']
+                row['Img'],
+                row['Body']
             )
             for _, row in news_df.iterrows()
         ]
@@ -135,4 +136,3 @@ if __name__ == "__main__":
             conn.close()
     except Exception as e:
         print(f"[ERROR] Test connection failed: {e}")
-
