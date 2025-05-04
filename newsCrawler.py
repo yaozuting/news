@@ -116,13 +116,13 @@ def unstructured_news():
     # Parse the target date (ignoring time)
     market_news = []
     # Set Chrome options
-    # chrome_options = Options()
-    # chrome_options.add_argument("--headless")  # Run in headless mode (no GUI)
-    # chrome_options.add_argument("--disable-gpu")
-    # chrome_options.add_argument("--no-sandbox")  # Useful for Linux options=chrome_options  chrome_options
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")  # Run in headless mode (no GUI)
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--no-sandbox")  # Useful for Linux options=chrome_options  
 
     # Initialize the driver with options
-    driver = webdriver.Chrome()
+    driver = webdriver.Chrome(chrome_options)
     driver.get("https://www.klsescreener.com/v2/news")
     
     language_ids = ['checkbox_language_ms', 'checkbox_language_zh']
