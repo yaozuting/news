@@ -116,13 +116,13 @@ def unstructured_news():
     # Parse the target date (ignoring time)
     market_news = []
     # Set Chrome options
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")  # Run in headless mode (no GUI)
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--no-sandbox")  # Useful for Linux options=chrome_options
+    # chrome_options = Options()
+    # chrome_options.add_argument("--headless")  # Run in headless mode (no GUI)
+    # chrome_options.add_argument("--disable-gpu")
+    # chrome_options.add_argument("--no-sandbox")  # Useful for Linux options=chrome_options  chrome_options
 
     # Initialize the driver with options
-    driver = webdriver.Chrome(chrome_options)
+    driver = webdriver.Chrome()
     driver.get("https://www.klsescreener.com/v2/news")
     
     language_ids = ['checkbox_language_ms', 'checkbox_language_zh']
@@ -165,8 +165,7 @@ def unstructured_news():
                 article_date = article_date.replace(tzinfo=pytz.timezone('Asia/Kuala_Lumpur'))  # Ensure timezone-aware
               
                 # Stop if this article is too old
-                if abs(target_date - article_date) > timedelta(hours=1):
-                    break
+                if abs(target_date - article_date) > timedelta(hours=2):
                     return False
 
                 news_hyperlink = 'https://www.klsescreener.com' + article.find('a')['href']
