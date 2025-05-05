@@ -18,7 +18,6 @@ from database import  insert_news,extract_last_news
 
 load_dotenv('.env')
 
-
 # Set up OpenAI API client
 api = os.getenv("OPENAI_API_KEY")
 
