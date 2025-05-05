@@ -1,4 +1,4 @@
-name: Market News Scraper (Windows + Chrome)
+name: Market News Scraper 
 
 on:
   schedule:
