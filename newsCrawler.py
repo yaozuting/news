@@ -156,7 +156,6 @@ def unstructured_news():
                 title = article.find('h2').get_text(strip=True)
                 if latest_data is not None and not latest_data.empty:
                     if latest_data['Title'].str.contains(title).any():
-                         break
                          return False  # Stop if we reached previously scraped title
 
                 date_str = article.find('span', attrs={"data-date": True})['data-date']
