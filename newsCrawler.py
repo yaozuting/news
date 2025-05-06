@@ -231,9 +231,10 @@ class NewsMainStorySpider(scrapy.Spider):
     def parse(self, response):
         soup = BeautifulSoup(response.text, 'html.parser')
         news_container = soup.find('div', class_='news-container')
-        paragraphs = news_container.find_all('div',class_='newsTextDataWrapInner')
+        body_text_container = news_container.find('div',class_='content text-justify')
+        paragraphs = body_text_container.find_all('p')
         related_stocks_section = soup.find('div', class_='stock-list table-responsive')
-        full_text = ' '.join([p.get_text(strip=True) for p in paragraphs])
+        full_text = ' '.join([p.get_text(strip=True) for p in paragraphs[:-1]])
         img = news_container.find('img')
         if img:
             img_url = img['src']
