@@ -16,95 +16,8 @@ import pytz
 import time
 from database import  insert_news,extract_last_news
 
-load_dotenv('.env')
-
-# Set up OpenAI API client
-api = os.getenv("OPENAI_API_KEY")
-
-client = OpenAI(api_key=api ,base_url="https://api.deepseek.com")
-def assign_industry(client,news_title):
-    """Assigns industry to the news title using DeepSeek API."""
-    try:
-        response = client.chat.completions.create(
-        model="deepseek-chat",  # ✅ correct model name for DeepSeek
-        messages=[
-            {
-                "role": "user",
-                "content": f"""Classify the following news title into one of these industries:
-
-        Construction, Consumer Products & Services(such as Automotive,F&B,Retailers,so forth), Energy, Financial Services, Health Care, Industrial Products & Services(such as Auto Parts,Building Materials,Chemicals,Metal,Wood and so on), Plantation, Property, REIT, Technology, Telecommunications & Media, Transportation & Logistics, Utilities,Unknown
-
-        Respond with only a single word in quotes — such as Construction, Financial Services, or Unknown . no quotation marks
-        the main idea is to categorize the  BUSINESS-RELATED news!!! OTHERS CLASSIFIED AS UNKNOWN IF THEY HAVE NO IMPACT ON ANY INDUSTRY
-
-        Title: {news_title}"""
-            }
-        ],
-        )
-
-        return response.choices[0].message.content.strip()
-    except Exception as e:
-        print(f"Error in API call: {e}")
-        return None
 
 
-
-def batch_assign_industries(client, items):
-    def classify(item):
-        item['Sector'] = assign_industry(client, item['Title'])
-        return item
-
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        return list(executor.map(classify, items))
-
-
-def extract_key_entities(client, news_title):
-    """Extracts structured named entities from a news title using DeepSeek API."""
-    try:
-        response = client.chat.completions.create(
-                    model="deepseek-chat",
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": 
-                            f"""Extract the most relevant and precise Noun, Verb, and Object from the following news headline. 
-            Focus only on the **core subject**, **main verb**, and **main object**. 
-            Return the result in the following format:
-
-            Noun: noun,  
-            Verb: verb,  
-            Object: object
-            for example: Truck maker Volvo cuts North America market outlook amid tariff uncertainty after Q1 profit falls
-            the result should be:
-            Noun: Volvo,
-            Verb: cut,
-            Object: market outlook
-
-            Guidelines:
-            - Only include the **main subject noun** 
-            - Only include the **root verb** in its **base form**
-            - Only include the **primary object** or concept being acted upon 
-            - No quotes or extra explanation. Just a clean 3-line output as shown.
-
-        Title: {news_title}"""
-                        }
-            ]
-        )
-        return response.choices[0].message.content.strip()
-    except Exception as e:
-        print(f"Error extracting entities: {e}")
-        return "None"
-
-def batch_extract_entities(client, news_items):
-    """
-    Takes a list of dicts (each with a 'Title') and adds a 'Key_Entities' field.
-    """
-    def enrich_with_entities(item):
-        item['Extracted_Entities'] = extract_key_entities(client, item['Title'])
-        return item
-
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        return list(executor.map(enrich_with_entities, news_items))
     
 def unstructured_news(): 
     latest_data = extract_last_news('Market_News')
@@ -217,8 +130,6 @@ class NewsMainStorySpider(scrapy.Spider):
 
     def __init__(self, market_news):
         self.market_news = market_news
-        self.market_news = batch_assign_industries(client, self.market_news)
-        self.market_news = batch_extract_entities(client, self.market_news)
         self.start_urls = [item['News_Hyperlinks'] for item in market_news]
 
     def start_requests(self):
