@@ -85,7 +85,7 @@ def insert_news(news_df, news_table):
         cursor = conn.cursor()
         insert_query = f"""
             INSERT INTO {news_table}
-            (Title, News_Hyperlinks, Published_Date, Sector, Extracted_Entities, Related_Stock, Img,Body)
+            (Title, News_Hyperlinks, Published_Date, Related_Stock, Img,Body)
             VALUES (?, ?, ?, ?, ?, ?, ?,?)
         """
 
@@ -94,8 +94,6 @@ def insert_news(news_df, news_table):
                 row['Title'],
                 row['News_Hyperlinks'],
                 row['Published_Date'],
-                row['Sector'],
-                row['Extracted_Entities'],
                 row['Related_Stock'],
                 row['Img'],
                 row['Body']
@@ -136,3 +134,4 @@ if __name__ == "__main__":
             conn.close()
     except Exception as e:
         print(f"[ERROR] Test connection failed: {e}")
+
