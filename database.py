@@ -86,7 +86,7 @@ def insert_news(news_df, news_table):
         insert_query = f"""
             INSERT INTO {news_table}
             (Title, News_Hyperlinks, Published_Date, Related_Stock, Img,Body)
-            VALUES (?, ?, ?, ?, ?, ?, ?,?)
+            VALUES (?, ?, ?, ?, ?, ?)
         """
 
         records = [
@@ -134,4 +134,5 @@ if __name__ == "__main__":
             conn.close()
     except Exception as e:
         print(f"[ERROR] Test connection failed: {e}")
+
 
