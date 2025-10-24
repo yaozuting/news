@@ -50,68 +50,81 @@ def unstructured_news():
 
 
 
-    def process_page():
-        """Process the current page with BeautifulSoup"""
+    WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.ID, 'section')))
+    while True:
         try:
-            body = driver.page_source
-            soup = BeautifulSoup(body, "html.parser")
-            articles = soup.find("div", id="section")
-           
-            if not articles:
-                print("No articles found.")
-                return False
+            # Wait for the articles section to be present
+            # Find all published-date spans and inspect the last one (oldest loaded)
+            date_spans = driver.find_elements(By.CSS_SELECTOR, "div.item.figure.flex-block span[data-date]")
+            if not date_spans:
+                # Nothing loaded yet, break and attempt to scrape whatever is present
+                break
 
+            last_date_str = date_spans[-1].get_attribute('data-date')
+            try:
+                last_date = datetime.fromisoformat(last_date_str).replace(tzinfo=pytz.timezone('Asia/Kuala_Lumpur'))   # Skip articles older than our threshold
+                if abs(target_date - last_date) > timedelta(hours=4):
+                    break
+            except Exception:
+                # If parsing fails, stop loading more and fall back to scraping current page
+                print(f"Unable to parse date string: {last_date_str}; stopping load-more loop.")
+                break
+   
+           
+            # Otherwise click the "Load More" button and continue
+            try:
+                load_more_button = WebDriverWait(driver, 5).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, ".figure_loading"))
+                )
+                load_more_button.click()
+                # Scroll to bottom to trigger lazy loading / ensure new content loads
+                
+                # small wait for additional content to load
+                time.sleep(1)
+            except TimeoutException:
+                # No more button available; stop loading more
+                print("No 'Load More' button found or clickable; proceeding to scrape current content.")
+                break
+
+        except TimeoutException:
+            print("Articles section did not appear in time; proceeding to scrape current content.")
+            break
+        except Exception as e:
+            print(f"An error occurred during load-more loop: {e}")
+            break
+
+    # After finishing loading more content (or on error), parse the page ONCE
+    try:
+        body = driver.page_source
+        soup = BeautifulSoup(body, "html.parser")
+        articles = soup.find("div", id="section")
+
+        if not articles:
+            print("No articles found.")
+        else:
             individual_articles = articles.find_all('div', class_='item figure flex-block')
-            found_new = False
 
             for article in individual_articles:
-                # print(f'article: {article}')
-                title = article.find('h2').get_text(strip=True)
-                if latest_data is not None and not latest_data.empty:
-                    if latest_data['Title'].str.contains(title).any():
-                         return False  # Stop if we reached previously scraped title
+                title_tag = article.find('h2')
+                if not title_tag:
+                    continue
+                title = title_tag.get_text(strip=True)
 
-                date_str = article.find('span', attrs={"data-date": True})['data-date']
-                article_date = datetime.fromisoformat(date_str)
-                article_date = article_date.replace(tzinfo=pytz.timezone('Asia/Kuala_Lumpur'))  # Ensure timezone-aware
-              
-                # Stop if this article is too old
-                if abs(target_date - article_date) > timedelta(hours=1):
-                    return False
+                date_span = article.find('span', attrs={"data-date": True})
+                if not date_span:
+                    continue
+                date_str = date_span['data-date']
 
-                news_hyperlink = 'https://www.klsescreener.com' + article.find('a')['href']
+                news_hyperlink = 'https://www.klsescreener.com' + (article.find('a')['href'] if article.find('a') else '')
 
                 market_news.append({
                     'Title': title,
                     'News_Hyperlinks': news_hyperlink,
                     'Published_Date': date_str
                 })
-                found_new = True
-              
-            return found_new  # Continue if at least one new item is found
 
-        except Exception as e:
-            print(f"Error processing page: {e}")
-            return False
-
-    while True:
-        try:
-            # Process the current page
-            if not process_page():
-                break
-
-            # Click the "Load More" button
-            load_more_button = WebDriverWait(driver, 0.01).until(
-                EC.element_to_be_clickable((By.CSS_SELECTOR, ".figure_loading"))
-            )
-            load_more_button.click()
-
-        except TimeoutException:
-            print("No 'Load More' button found or content loading timed out.")
-            break
-        except Exception as e:
-            print(f"An error occurred: {e}")
-            break
+    except Exception as e:
+        print(f"Error processing final page scrape: {e}")
 
     # Close the browser
     driver.quit()
@@ -171,7 +184,7 @@ class NewsMainStorySpider(scrapy.Spider):
 
     def closed(self, reason):
         """Called when spider finishes crawling."""
-        new_data = pd.DataFrame(self.market_news)
+        new_data = pd.DataFrame(self.market_news).drop_duplicates()
         print(new_data)
         
         if not new_data.empty:
@@ -188,3 +201,4 @@ if __name__ == "__main__":
     process = CrawlerProcess()
     process.crawl(NewsMainStorySpider, market_news=market_news)
     process.start()
+
