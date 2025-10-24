@@ -109,6 +109,8 @@ def unstructured_news():
                 if not title_tag:
                     continue
                 title = title_tag.get_text(strip=True)
+                if title == latest_data['Title']:
+                    break
 
                 date_span = article.find('span', attrs={"data-date": True})
                 if not date_span:
@@ -201,4 +203,5 @@ if __name__ == "__main__":
     process = CrawlerProcess()
     process.crawl(NewsMainStorySpider, market_news=market_news)
     process.start()
+
 
