@@ -158,6 +158,7 @@ class NewsMainStorySpider(scrapy.Spider):
         soup = BeautifulSoup(response.text, 'html.parser')
         news_container = soup.find('div', class_='news-container')
         body_text_container = news_container.find('div',class_='content text-justify')
+        title = news_container.find('h2').get_text(strip=True)
         paragraphs = body_text_container.find_all('p')
         related_stocks_section = soup.find('div', class_='stock-list table-responsive')
         full_text = ' '.join([p.get_text(strip=True) for p in paragraphs[:-1]])
@@ -179,6 +180,7 @@ class NewsMainStorySpider(scrapy.Spider):
 
         for item in self.market_news:
             if item['News_Hyperlinks'] == response.url:
+                item['Title']  = title
                 item['Body'] = full_text
                 item['Related_Stock'] = ', '.join(related_stocks)
                 item['Img'] = img_url
@@ -203,6 +205,7 @@ if __name__ == "__main__":
     process = CrawlerProcess()
     process.crawl(NewsMainStorySpider, market_news=market_news)
     process.start()
+
 
 
 
