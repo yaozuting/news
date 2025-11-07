@@ -1,56 +1,56 @@
-name: Market News Scraper 
+# name: Market News Scraper 
 
-on:
-  schedule:
-    - cron: "0 */1 * * *"   # Every 1 hours
-  workflow_dispatch:        # Allow manual trigger
+# on:
+#   schedule:
+#     - cron: "0 */1 * * *"   # Every 1 hours
+#   workflow_dispatch:        # Allow manual trigger
 
-jobs:
-  scrape:
-    runs-on: windows-latest
+# jobs:
+#   scrape:
+#     runs-on: windows-latest
 
-    steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
-      with:
-        clean: true
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.11"
-    - name: Sanity check
-      run: echo "Workflow is executing properly ✅"
+#     steps:
+#     - name: Checkout repo
+#       uses: actions/checkout@v3
+#       with:
+#         clean: true
+#     - name: Set up Python
+#       uses: actions/setup-python@v4
+#       with:
+#         python-version: "3.11"
+#     - name: Sanity check
+#       run: echo "Workflow is executing properly ✅"
 
 
-    - name: Install Python dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+#     - name: Install Python dependencies
+#       run: |
+#         python -m pip install --upgrade pip
+#         pip install -r requirements.txt
 
-    - name: Install Chrome and ChromeDriver (Windows)
-      run: |
-        choco install googlechrome chromedriver --ignore-checksums --yes
-      shell: powershell
+#     - name: Install Chrome and ChromeDriver (Windows)
+#       run: |
+#         choco install googlechrome chromedriver --ignore-checksums --yes
+#       shell: powershell
 
-    - name: Set Chrome path (if needed)
-      run: |
-        echo "C:\Program Files\Google\Chrome\Application" | Out-File -Append $env:GITHUB_PATH
-      shell: powershell
+#     - name: Set Chrome path (if needed)
+#       run: |
+#         echo "C:\Program Files\Google\Chrome\Application" | Out-File -Append $env:GITHUB_PATH
+#       shell: powershell
    
-    - name: Install ODBC Driver 17 via Microsoft Installer
-      run: |
-        Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=2211530" -OutFile "msodbcsql18.msi"
-        Start-Process msiexec.exe -Wait -ArgumentList '/I msodbcsql18.msi /quiet /norestart IACCEPTMSODBCSQLLICENSETERMS=YES'
-        Remove-Item msodbcsql18.msi
-      shell: powershell
+#     - name: Install ODBC Driver 17 via Microsoft Installer
+#       run: |
+#         Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=2211530" -OutFile "msodbcsql18.msi"
+#         Start-Process msiexec.exe -Wait -ArgumentList '/I msodbcsql18.msi /quiet /norestart IACCEPTMSODBCSQLLICENSETERMS=YES'
+#         Remove-Item msodbcsql18.msi
+#       shell: powershell
 
    
-    - name: Run newsCrawler.py
-      env:
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        DB_SERVER: ${{ secrets.DB_SERVER }}
-        DB_NAME: ${{ secrets.DB_NAME }}
-        DB_USERNAME: ${{ secrets.DB_USERNAME }}
-        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      run: |
-        python newsCrawler.py
+#     - name: Run newsCrawler.py
+#       env:
+#         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+#         DB_SERVER: ${{ secrets.DB_SERVER }}
+#         DB_NAME: ${{ secrets.DB_NAME }}
+#         DB_USERNAME: ${{ secrets.DB_USERNAME }}
+#         DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+#       run: |
+#         python newsCrawler.py
